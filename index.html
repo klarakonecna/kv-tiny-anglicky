@@ -97,12 +97,6 @@
 </div>
 
 <script>
-/*
-  Co kód dělá:
-  - Rozcestník (kategorie) + režim (CZ / Rod).
-  - Otázky i možnosti se losují pouze z vybrané kategorie.
-  - Reset vynuluje skóre a pokračuje dál.
-*/
 
 const datasets = {
   "Letničky": [
@@ -159,7 +153,6 @@ const datasets = {
   ]
 };
 
-/* 1) Nejdřív si vytáhneme prvky z DOM (to byla chyba v předchozí verzi) */
 const scoreEl = document.getElementById("score");
 const wrongEl = document.getElementById("wrong");
 const englishWordEl = document.getElementById("englishWord");
@@ -171,7 +164,6 @@ const categoryEl = document.getElementById("category");
 const modeEl = document.getElementById("mode");
 const resetBtnEl = document.getElementById("resetBtn");
 
-/* 2) Stav aplikace */
 let correct = 0;
 let wrong = 0;
 let current = null;
@@ -255,7 +247,7 @@ function checkAnswer(answer){
   scoreEl.textContent = correct;
   wrongEl.textContent = wrong;
 
-  setTimeout(nextWord, 1200);
+  setTimeout(nextWord, 2500);
 }
 
 function resetAll(){
@@ -266,12 +258,10 @@ function resetAll(){
   nextWord();
 }
 
-/* 3) Ovládání */
 resetBtnEl.onclick = resetAll;
 categoryEl.onchange = resetAll;
 modeEl.onchange = nextWord;
 
-/* 4) Start */
 initCategories();
 resetAll();
 </script>
