@@ -1,74 +1,89 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Květiny – přiřazování</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rostliny – přiřazování</title>
 <style>
-body{
-  font-family: Sitka Text, sans-serif;
-  background:#DA70D6;
-  text-align:center;
-  padding:30px;
-}
-h1{ color:#FFFFFF; }
-.card{
-  background:pink;
-  padding:20px;
-  max-width:460px;
-  margin:auto;
-  border-radius:10px;
-  box-shadow:0 0 10px rgba(0,0,0,0.1);
-}
-.row{
-  display:flex;
-  gap:10px;
-  justify-content:center;
-  margin-bottom:15px;
-}
-select, .smallBtn{
-  padding:10px;
-  border:none;
-  border-radius:8px;
-  font-size:14px;
-}
-.smallBtn{
-  background:#8000FF;
-  color:white;
-  cursor:pointer;
-}
-.smallBtn:hover{ background:#DA70D6; }
-button.optionBtn{
-  display:block;
-  margin:10px auto;
-  padding:10px;
-  width:100%;
-  border:none;
-  border-radius:5px;
-  background:#8000FF;
-  color:white;
-  font-size:16px;
-  cursor:pointer;
-}
-button.optionBtn:hover{ background:#DA70D6; }
-button.optionBtn:disabled{
-  opacity:0.6;
-}
-#result{ margin-top:15px; font-weight:bold; }
-.stats{ margin-top:10px; }
+  body{
+    font-family: Sitka Text, sans-serif;
+    background:#DA70D6;
+    text-align:center;
+    padding:30px;
+  }
+  h1{ color:#FFFFFF; margin-bottom:10px; }
+  .card{
+    background:pink;
+    padding:20px;
+    max-width:520px;
+    margin:auto;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+  }
+  .row{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    align-items:center;
+    margin-bottom:12px;
+    flex-wrap:wrap;
+  }
+  select, .smallBtn{
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    font-size:14px;
+  }
+  select{ min-width:170px; }
+  .smallBtn{
+    background:#8000FF;
+    color:white;
+    cursor:pointer;
+  }
+  .smallBtn:hover{ background:#DA70D6; }
+  button.optionBtn{
+    display:block;
+    margin:10px auto;
+    padding:10px;
+    width:100%;
+    border:none;
+    border-radius:8px;
+    background:#8000FF;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+  }
+  button.optionBtn:hover{ background:#DA70D6; }
+  #result{ margin-top:15px; font-weight:bold; }
+  .stats{ margin-top:10px; }
+  .pill{
+    display:inline-block;
+    padding:6px 10px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.5);
+    font-size:13px;
+  }
 </style>
 </head>
 <body>
 
-<h1>Květiny – přiřazování</h1>
+<h1>Rostliny – přiřazování</h1>
 
 <div class="card">
   <div class="row">
+    <select id="category"></select>
+
     <select id="mode">
       <option value="cz">Český název</option>
       <option value="genus_en">Rod (Genus)</option>
     </select>
+
     <button class="smallBtn" id="resetBtn">Reset</button>
+  </div>
+
+  <div class="row">
+    <span class="pill">Počet v sadě: <span id="setCount">0</span></span>
+    <span class="pill">Sada: <span id="setName">–</span></span>
   </div>
 
   <h2 id="englishWord"></h2>
@@ -82,115 +97,183 @@ button.optionBtn:disabled{
 </div>
 
 <script>
-const words = [
-  { en:"Rose", cz:"Růže", genus_en:"Rosa" },
-  { en:"Tulip", cz:"Tulipán", genus_en:"Tulipa" },
-  { en:"Daffodil", cz:"Narcis", genus_en:"Narcissus" },
-  { en:"Lily", cz:"Lilie", genus_en:"Lilium" },
-  { en:"Sunflower", cz:"Slunečnice", genus_en:"Helianthus" },
-  { en:"Daisy", cz:"Sedmikráska", genus_en:"Bellis" },
-  { en:"Orchid", cz:"Orchidej", genus_en:"Orchis" },
-  { en:"Iris", cz:"Kosatec", genus_en:"Iris" },
-  { en:"Poppy", cz:"Mák", genus_en:"Papaver" },
-  { en:"Peony", cz:"Pivoňka", genus_en:"Paeonia" },
-  { en:"Lavender", cz:"Levandule", genus_en:"Lavandula" },
-  { en:"Violet", cz:"Fialka", genus_en:"Viola" },
-  { en:"Carnation", cz:"Karafiát", genus_en:"Dianthus" },
-  { en:"Dandelion", cz:"Pampeliška", genus_en:"Taraxacum" },
-  { en:"Chrysanthemum", cz:"Chryzantéma", genus_en:"Chrysanthemum" },
-  { en:"Oxeye daisy", cz:"Kopretina", genus_en:"Leucanthemum" },
-  { en:"Chamomile", cz:"Heřmánek", genus_en:"Matricaria" },
-  { en:"Magnolia", cz:"Magnólie", genus_en:"Magnolia" },
-  { en:"Cornflower", cz:"Chrpa", genus_en:"Centaurea" },
-  { en:"Petunia", cz:"Petúnie", genus_en:"Petunia" },
-  { en:"Primrose", cz:"Prvosenka", genus_en:"Primula" },
-  { en:"Snowdrop", cz:"Sněženka", genus_en:"Galanthus" },
-  { en:"Lily of the valley", cz:"Konvalinka", genus_en:"Convallaria" },
-  { en:"Crocus", cz:"Krokus", genus_en:"Crocus" },
-  { en:"Anemone", cz:"Sasanka", genus_en:"Anemone" },
-  { en:"Azalea", cz:"Azalka", genus_en:"Rhododendron" },
-  { en:"Camellia", cz:"Kamélie", genus_en:"Camellia" },
-  { en:"Clematis", cz:"Plamének", genus_en:"Clematis" },
-  { en:"Dahlia", cz:"Jiřina", genus_en:"Dahlia" },
-  { en:"Foxglove", cz:"Náprstník", genus_en:"Digitalis" },
-  { en:"Freesia", cz:"Frézie", genus_en:"Freesia" },
-  { en:"Hibiscus", cz:"Ibišek", genus_en:"Hibiscus" },
-  { en:"Honeysuckle", cz:"Zimolez", genus_en:"Lonicera" },
-  { en:"Hydrangea", cz:"Hortenzie", genus_en:"Hydrangea" },
-  { en:"Jasmine", cz:"Jasmín", genus_en:"Jasminum" },
-  { en:"Lotus", cz:"Lotos", genus_en:"Nelumbo" },
-  { en:"Morning Glory", cz:"Povíjnice", genus_en:"Ipomoea" },
-  { en:"Nasturtium", cz:"Lichořeřišnice", genus_en:"Tropaeolum" },
-  { en:"Oleander", cz:"Oleandr", genus_en:"Nerium" },
-  { en:"Pansy", cz:"Maceška", genus_en:"Viola" },
-  { en:"Rhododendron", cz:"Pěnišník", genus_en:"Rhododendron" },
-  { en:"Snapdragon", cz:"Hledík", genus_en:"Antirrhinum" },
-  { en:"Sweet Pea", cz:"Hrachor", genus_en:"Lathyrus" },
-  { en:"Water Lily", cz:"Leknín", genus_en:"Nymphaea" },
-  { en:"Wisteria", cz:"Vistárie", genus_en:"Wisteria" },
-  { en:"Zinnia", cz:"Cínie", genus_en:"Zinnia" },
-  { en:"Yarrow", cz:"Řebříček", genus_en:"Achillea" },
-  { en:"Buttercup", cz:"Pryskyřník", genus_en:"Ranunculus" },
-  { en:"Heather", cz:"Vřes", genus_en:"Calluna" }
-];
+/*
+  Co kód dělá:
+  - Rozcestník (kategorie) + režim (CZ / Rod).
+  - Otázky i možnosti se losují pouze z vybrané kategorie.
+  - Reset vynuluje skóre a pokračuje dál.
+*/
 
+const datasets = {
+  "Letničky": [
+    { en:"Petunia", cz:"Petúnie", genus_en:"Petunia" },
+    { en:"Zinnia", cz:"Cínie", genus_en:"Zinnia" },
+    { en:"Marigold", cz:"Aksamitník", genus_en:"Tagetes" },
+    { en:"Cosmos", cz:"Krásenka", genus_en:"Cosmos" },
+    { en:"Sunflower", cz:"Slunečnice", genus_en:"Helianthus" },
+    { en:"Impatiens", cz:"Netýkavka", genus_en:"Impatiens" },
+    { en:"Nasturtium", cz:"Lichořeřišnice", genus_en:"Tropaeolum" }
+  ],
+
+  "Trvalky": [
+    { en:"Peony", cz:"Pivoňka", genus_en:"Paeonia" },
+    { en:"Lavender", cz:"Levandule", genus_en:"Lavandula" },
+    { en:"Iris", cz:"Kosatec", genus_en:"Iris" },
+    { en:"Dahlia", cz:"Jiřina", genus_en:"Dahlia" },
+    { en:"Chrysanthemum", cz:"Chryzantéma", genus_en:"Chrysanthemum" },
+    { en:"Yarrow", cz:"Řebříček", genus_en:"Achillea" },
+    { en:"Foxglove", cz:"Náprstník", genus_en:"Digitalis" }
+  ],
+
+  "Ovocné stromy": [
+    { en:"Apple tree", cz:"Jabloň", genus_en:"Malus" },
+    { en:"Pear tree", cz:"Hrušeň", genus_en:"Pyrus" },
+    { en:"Plum tree", cz:"Slivoň", genus_en:"Prunus" },
+    { en:"Cherry tree", cz:"Třešeň", genus_en:"Prunus" },
+    { en:"Sour cherry tree", cz:"Višeň", genus_en:"Prunus" },
+    { en:"Apricot tree", cz:"Meruňka", genus_en:"Prunus" },
+    { en:"Walnut tree", cz:"Ořešák vlašský", genus_en:"Juglans" }
+  ],
+
+  "Jehličnaté stromy": [
+    { en:"Norway spruce", cz:"Smrk ztepilý", genus_en:"Picea" },
+    { en:"Scots pine", cz:"Borovice lesní", genus_en:"Pinus" },
+    { en:"Silver fir", cz:"Jedle bělokorá", genus_en:"Abies" },
+    { en:"European larch", cz:"Modřín opadavý", genus_en:"Larix" },
+    { en:"Yew", cz:"Tis", genus_en:"Taxus" },
+    { en:"Juniper", cz:"Jalovec", genus_en:"Juniperus" },
+    { en:"Thuja", cz:"Túje (zerav)", genus_en:"Thuja" }
+  ],
+
+  "Listnaté stromy": [
+    { en:"Oak", cz:"Dub", genus_en:"Quercus" },
+    { en:"Beech", cz:"Buk", genus_en:"Fagus" },
+    { en:"Birch", cz:"Bříza", genus_en:"Betula" },
+    { en:"Maple", cz:"Javor", genus_en:"Acer" },
+    { en:"Linden", cz:"Lípa", genus_en:"Tilia" },
+    { en:"Ash", cz:"Jasan", genus_en:"Fraxinus" },
+    { en:"Elm", cz:"Jilm", genus_en:"Ulmus" },
+    { en:"Hornbeam", cz:"Habr", genus_en:"Carpinus" },
+    { en:"Poplar", cz:"Topol", genus_en:"Populus" },
+    { en:"Willow", cz:"Vrba", genus_en:"Salix" }
+  ]
+};
+
+/* 1) Nejdřív si vytáhneme prvky z DOM (to byla chyba v předchozí verzi) */
+const scoreEl = document.getElementById("score");
+const wrongEl = document.getElementById("wrong");
+const englishWordEl = document.getElementById("englishWord");
+const optionsEl = document.getElementById("options");
+const resultEl = document.getElementById("result");
+const setCountEl = document.getElementById("setCount");
+const setNameEl = document.getElementById("setName");
+const categoryEl = document.getElementById("category");
+const modeEl = document.getElementById("mode");
+const resetBtnEl = document.getElementById("resetBtn");
+
+/* 2) Stav aplikace */
 let correct = 0;
 let wrong = 0;
-let current;
+let current = null;
 let locked = false;
+
+function initCategories(){
+  categoryEl.innerHTML = "";
+  Object.keys(datasets).forEach((name, idx) => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    if (idx === 0) opt.selected = true;
+    categoryEl.appendChild(opt);
+  });
+}
+
+function getActiveWords(){
+  return datasets[categoryEl.value] || [];
+}
+
+function shuffle(arr){
+  return arr.sort(() => Math.random() - 0.5);
+}
+
+function renderSetInfo(){
+  const active = getActiveWords();
+  setCountEl.textContent = active.length;
+  setNameEl.textContent = categoryEl.value;
+}
 
 function nextWord(){
   locked = false;
-  document.getElementById("result").textContent = "";
-  const mode = document.getElementById("mode").value;
-  current = words[Math.floor(Math.random() * words.length)];
-  document.getElementById("englishWord").textContent = current.en;
+  resultEl.textContent = "";
 
-  let options = [current[mode]];
-  while (options.length < 4){
-    const rnd = words[Math.floor(Math.random() * words.length)][mode];
-    if (rnd && !options.includes(rnd)) options.push(rnd);
+  const active = getActiveWords();
+  const mode = modeEl.value;
+
+  if (active.length < 4){
+    englishWordEl.textContent = "Vybraná sada má méně než 4 položky.";
+    optionsEl.innerHTML = "";
+    renderSetInfo();
+    return;
   }
-  options.sort(() => Math.random() - 0.5);
 
-  const div = document.getElementById("options");
-  div.innerHTML = "";
-  options.forEach(opt => {
-    const b = document.createElement("button");
-    b.className = "optionBtn";
-    b.textContent = opt;
-    b.onclick = () => checkAnswer(opt);
-    div.appendChild(b);
+  current = active[Math.floor(Math.random() * active.length)];
+  englishWordEl.textContent = current.en;
+
+  let opts = [current[mode]];
+  while (opts.length < 4){
+    const candidate = active[Math.floor(Math.random() * active.length)][mode];
+    if (candidate && !opts.includes(candidate)) opts.push(candidate);
+  }
+  shuffle(opts);
+
+  optionsEl.innerHTML = "";
+  opts.forEach(text => {
+    const btn = document.createElement("button");
+    btn.className = "optionBtn";
+    btn.textContent = text;
+    btn.onclick = () => checkAnswer(text);
+    optionsEl.appendChild(btn);
   });
+
+  renderSetInfo();
 }
 
 function checkAnswer(answer){
   if (locked) return;
   locked = true;
-  const mode = document.getElementById("mode").value;
+
+  const mode = modeEl.value;
+
   if (answer === current[mode]){
     correct++;
-    document.getElementById("result").textContent = "Správně ✅";
+    resultEl.textContent = "Správně ✅";
   } else {
     wrong++;
-    document.getElementById("result").textContent = "Špatně ❌ Správně: " + current[mode];
+    resultEl.textContent = "Špatně ❌ Správně: " + current[mode];
   }
-  document.getElementById("score").textContent = correct;
-  document.getElementById("wrong").textContent = wrong;
+
+  scoreEl.textContent = correct;
+  wrongEl.textContent = wrong;
+
   setTimeout(nextWord, 1200);
 }
 
-document.getElementById("resetBtn").onclick = () => {
+function resetAll(){
   correct = 0;
   wrong = 0;
-  document.getElementById("score").textContent = 0;
-  document.getElementById("wrong").textContent = 0;
+  scoreEl.textContent = 0;
+  wrongEl.textContent = 0;
   nextWord();
-};
+}
 
-document.getElementById("mode").onchange = nextWord;
+/* 3) Ovládání */
+resetBtnEl.onclick = resetAll;
+categoryEl.onchange = resetAll;
+modeEl.onchange = nextWord;
 
-nextWord();
+/* 4) Start */
+initCategories();
+resetAll();
 </script>
 
 </body>
