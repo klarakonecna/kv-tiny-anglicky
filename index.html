@@ -189,7 +189,6 @@ let correct = 0;
 let wrong = 0;
 let locked = false;
 
-// aktuální "kolo" si uložíme obecně (co je otázka, co je správná odpověď)
 let currentItem = null;
 let currentQKey = null; // "en" | "cz" | "genus" | "species"
 let currentAKey = null; // "en" | "cz" | "genus" | "species"
@@ -241,13 +240,11 @@ function renderSetInfo(active){
 }
 
 function pickDifferentKey(fromKey){
-  // vybere náhodně jiný klíč než fromKey
   const candidates = KEYS.filter(k => k !== fromKey);
   return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
 function setModeClassicVisibility(){
-  // V ultimátním režimu nedává klasický "mode" smysl, tak ho skryjeme
   if (quizTypeEl.value === "ultimate") {
     modeClassicEl.style.display = "none";
   } else {
@@ -256,35 +253,30 @@ function setModeClassicVisibility(){
 }
 
 function buildRound(active){
-  // vytvoří jedno "kolo" podle vybraného typu kvízu
   const quizType = quizTypeEl.value;
 
   currentItem = active[Math.floor(Math.random() * active.length)];
 
   if (quizType === "classic"){
-    currentQKey = "en"; // otázka je EN
-    currentAKey = modeClassicEl.value; // odpověď dle režimu
+    currentQKey = "en"; 
+    currentAKey = modeClassicEl.value; 
   } else {
-    // ultimátní: otázka i odpověď náhodně, vždy různé
     currentQKey = KEYS[Math.floor(Math.random() * KEYS.length)];
     currentAKey = pickDifferentKey(currentQKey);
   }
 }
 
 function renderQuestion(){
-  // nadpis otázky
   questionTextEl.textContent = currentItem[currentQKey];
 
   // info pilulky
   qTypeEl.textContent = LABELS[currentQKey];
   aTypeEl.textContent = LABELS[currentAKey];
 
-  // malá nápověda (co přesně vybíráš)
-  hintTextEl.textContent = `Vyber správný ${LABELS[currentAKey]} pro zadané ${LABELS[currentQKey]}.`;
+  hintTextEl.textContent = `Vyber správný ${LABELS[currentAKey]} pro zadaný ${LABELS[currentQKey]}.`;
 }
 
 function buildOptions(active){
-  // vytvoří 4 možnosti odpovědí z aktivní sady pro currentAKey
   let opts = [currentItem[currentAKey]];
 
   while (opts.length < 4){
@@ -335,9 +327,9 @@ function checkAnswer(answer){
 
   buttons.forEach(btn => {
     if (btn.textContent === correctAnswer) {
-      btn.style.background = "#2ecc71"; // správná
+      btn.style.background = "#2ecc71"; 
     } else if (btn.textContent === answer) {
-      btn.style.background = "#e74c3c"; // špatná volba
+      btn.style.background = "#e74c3c"; 
     }
     btn.disabled = true;
   });
@@ -364,7 +356,6 @@ function resetAll(){
   nextWord();
 }
 
-// ====== Ovládání ======
 resetBtnEl.onclick = resetAll;
 categoryEl.onchange = resetAll;
 quizTypeEl.onchange = () => { setModeClassicVisibility(); resetAll(); };
