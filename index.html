@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Rostliny – přiřazování (ultimátní režim)</title>
+<title>Rostliny – učení + přiřazování</title>
 <style>
   body{
     font-family: Sitka Text, sans-serif;
@@ -15,7 +15,7 @@
   .card{
     background:pink;
     padding:20px;
-    max-width:720px;
+    max-width:820px;
     margin:auto;
     border-radius:10px;
     box-shadow:0 0 10px rgba(0,0,0,0.1);
@@ -42,6 +42,27 @@
   }
   .smallBtn:hover{ background:#DA70D6; }
 
+  .tabs{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    margin:10px 0 16px;
+    flex-wrap:wrap;
+  }
+  .tabBtn{
+    padding:10px 14px;
+    border:none;
+    border-radius:999px;
+    cursor:pointer;
+    background:rgba(255,255,255,0.55);
+    font-size:14px;
+  }
+  .tabBtn.active{
+    background:#8000FF;
+    color:white;
+  }
+
+  /* ===== Quiz buttons ===== */
   button.optionBtn{
     display:block;
     margin:10px auto;
@@ -57,7 +78,7 @@
   button.optionBtn:hover{ background:#DA70D6; }
   button.optionBtn:disabled{ opacity:0.78; cursor:not-allowed; }
 
-  /* === Obrázkové možnosti === */
+  /* ===== Image options ===== */
   .imgGrid{
     display:grid;
     grid-template-columns: repeat(2, minmax(140px, 1fr));
@@ -92,6 +113,7 @@
   }
 
   #result{ margin-top:15px; font-weight:bold; }
+
   .stats{ margin-top:10px; }
   .pill{
     display:inline-block;
@@ -105,11 +127,87 @@
     font-size:13px;
     opacity:0.85;
   }
+
+  /* ===== Study mode ===== */
+  .studyWrap{
+    display:grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap:14px;
+    margin-top:12px;
+  }
+  @media (max-width: 820px){
+    .studyWrap{ grid-template-columns: 1fr; }
+  }
+  .studyCard{
+    background:rgba(255,255,255,0.6);
+    border-radius:14px;
+    padding:14px;
+    text-align:left;
+  }
+  .studyTop{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .studyTitle{
+    font-weight:bold;
+    font-size:16px;
+  }
+  .studyImg{
+    width:100%;
+    aspect-ratio: 16 / 10;
+    object-fit:cover;
+    border-radius:12px;
+    margin:12px 0;
+    background:rgba(255,255,255,0.25);
+  }
+  .studyGrid{
+    display:grid;
+    grid-template-columns: 120px 1fr;
+    gap:8px 12px;
+    font-size:14px;
+  }
+  .studyLabel{ opacity:0.75; }
+  .studyValue{ font-weight:600; }
+
+  .studySide{
+    background:rgba(255,255,255,0.45);
+    border-radius:14px;
+    padding:14px;
+    text-align:left;
+  }
+  .studySide h3{
+    margin:0 0 10px;
+    font-size:15px;
+  }
+  .studyList{
+    max-height:320px;
+    overflow:auto;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .studyItem{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    align-items:center;
+    padding:10px;
+    border-radius:10px;
+    background:rgba(255,255,255,0.55);
+    cursor:pointer;
+  }
+  .studyItem.active{ outline:2px solid #8000FF; }
+  .studyItem small{ opacity:0.75; display:block; }
+
+  .hiddenAnswer .studyValue{ filter: blur(7px); user-select:none; }
 </style>
 </head>
 <body>
 
-<h1>Rostliny – přiřazování</h1>
+<h1>Rostliny – učení + kvíz</h1>
 
 <div class="card">
   <div class="row">
@@ -130,6 +228,11 @@
     <button class="smallBtn" id="resetBtn">Reset</button>
   </div>
 
+  <div class="tabs">
+    <button class="tabBtn active" id="tabStudy">Učení (slovíčka)</button>
+    <button class="tabBtn" id="tabQuiz">Kvíz (přiřazování)</button>
+  </div>
+
   <div class="row">
     <span class="pill">Počet v sadě: <span id="setCount">0</span></span>
     <span class="pill">Sada: <span id="setName">–</span></span>
@@ -137,23 +240,63 @@
     <span class="pill">Hledám: <span id="aType">–</span></span>
   </div>
 
-  <h2 id="questionText"></h2>
-  <div class="hint" id="hintText"></div>
+  <!-- ===== STUDY VIEW ===== -->
+  <div id="studyView">
+    <div class="row">
+      <button class="smallBtn" id="prevCardBtn">◀ Předchozí</button>
+      <button class="smallBtn" id="flipBtn">👁️ Skrýt/ukázat odpovědi</button>
+      <button class="smallBtn" id="nextCardBtn">Další ▶</button>
+    </div>
 
-  <div id="options"></div>
-  <p id="result"></p>
+    <div class="studyWrap">
+      <div class="studyCard" id="studyCard">
+        <div class="studyTop">
+          <div class="studyTitle" id="studyTitle">–</div>
+          <div class="pill">Kartička: <span id="studyIndex">0</span>/<span id="studyTotal">0</span></div>
+        </div>
 
-  <div class="stats">
-    Správně: <span id="score">0</span> |
-    Špatně: <span id="wrong">0</span>
+        <img class="studyImg" id="studyImg" alt="Obrázek rostliny" />
+
+        <div class="studyGrid" id="studyGrid">
+          <!-- vyplní se JS -->
+        </div>
+
+        <div class="hint" style="margin-top:10px;">
+          Tip: klikni na položku v seznamu vpravo pro rychlý výběr.
+        </div>
+      </div>
+
+      <div class="studySide">
+        <h3>Seznam ve vybrané sadě</h3>
+        <div class="studyList" id="studyList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== QUIZ VIEW ===== -->
+  <div id="quizView" style="display:none;">
+    <h2 id="questionText"></h2>
+    <div class="hint" id="hintText"></div>
+
+    <div id="options"></div>
+    <p id="result"></p>
+
+    <div class="stats">
+      Správně: <span id="score">0</span> |
+      Špatně: <span id="wrong">0</span>
+    </div>
   </div>
 </div>
 
 <script>
+// ===== Pomocná funkce – z názvu souboru na Wikimedia Commons vytvoří přímou URL =====
 function commonsFile(fileName){
+  // Komentář: Přes Special:FilePath se dá použít obrázek přímo jako URL.
   return "https://commons.wikimedia.org/wiki/Special:FilePath/" + encodeURIComponent(fileName);
 }
 
+// ===================== DATA =====================
+// Komentář: Každá položka má img (Wikimedia Commons). Klidně si to později vyměň za vlastní fotky.
 const datasets = {
   "Letničky": [
     { en:"Petunia", cz:"Petúnie", genus:"Petunia", species:"Petunia × atkinsiana", img: commonsFile("Petunia ×atkinsiana.jpg") },
@@ -163,16 +306,16 @@ const datasets = {
     { en:"Sunflower", cz:"Slunečnice", genus:"Helianthus", species:"Helianthus annuus", img: commonsFile("Helianthus annuus.jpg") },
     { en:"Impatiens", cz:"Netýkavka", genus:"Impatiens", species:"Impatiens walleriana", img: commonsFile("Impatiens walleriana.JPG") },
     { en:"Nasturtium", cz:"Lichořeřišnice", genus:"Tropaeolum", species:"Tropaeolum majus", img: commonsFile("Tropaeolum majus.JPG") },
-    { en:"Snapdragon", cz:"Hledík", genus:"Antirrhinum", species:"Antirrhinum majus", img: commonsFile("Antirrhinum Majus.jpg") }
+    { en:"Snapdragon", cz:"Hledík", genus:"Antirrhinum", species:"Antirrhinum majus", img: commonsFile("Antirrhinum majus.jpg") }
   ],
   "Trvalky": [
     { en:"Peony", cz:"Pivoňka", genus:"Paeonia", species:"Paeonia lactiflora", img: commonsFile("Paeonia lactiflora.jpg") },
-    { en:"Lavender", cz:"Levandule", genus:"Lavandula", species:"Lavandula angustifolia", img: commonsFile("Lavandula Angustifolia.jpg") },
+    { en:"Lavender", cz:"Levandule", genus:"Lavandula", species:"Lavandula angustifolia", img: commonsFile("Lavandula angustifolia.jpg") },
     { en:"Iris", cz:"Kosatec", genus:"Iris", species:"Iris germanica", img: commonsFile("Iris germanica.jpg") },
     { en:"Dahlia", cz:"Jiřina", genus:"Dahlia", species:"Dahlia pinnata", img: commonsFile("Dahlia pinnata.JPG") },
     { en:"Chrysanthemum", cz:"Chryzantéma", genus:"Chrysanthemum", species:"Chrysanthemum morifolium", img: commonsFile("Chrysanthemum morifolium.jpg") },
     { en:"Yarrow", cz:"Řebříček", genus:"Achillea", species:"Achillea millefolium", img: commonsFile("Achillea millefolium.jpg") },
-    { en:"Foxglove", cz:"Náprstník", genus:"Digitalis", species:"Digitalis purpurea", img: commonsFile("Digitalis Purpurea.jpg") },
+    { en:"Foxglove", cz:"Náprstník", genus:"Digitalis", species:"Digitalis purpurea", img: commonsFile("Digitalis purpurea.jpg") },
     { en:"Hydrangea", cz:"Hortenzie", genus:"Hydrangea", species:"Hydrangea macrophylla", img: commonsFile("Hydrangea macrophylla 01.jpg") }
   ],
   "Ovocné stromy": [
@@ -183,7 +326,7 @@ const datasets = {
     { en:"Sour cherry tree", cz:"Višeň", genus:"Prunus", species:"Prunus cerasus", img: commonsFile("Prunus cerasus.jpg") },
     { en:"Apricot tree", cz:"Meruňka", genus:"Prunus", species:"Prunus armeniaca", img: commonsFile("Prunus armeniaca.jpg") },
     { en:"Peach tree", cz:"Broskvoň", genus:"Prunus", species:"Prunus persica", img: commonsFile("Prunus persica.jpg") },
-    { en:"Walnut tree", cz:"Ořešák vlašský", genus:"Juglans", species:"Juglans regia", img: commonsFile("Juglans Regia.JPG") }
+    { en:"Walnut tree", cz:"Ořešák vlašský", genus:"Juglans", species:"Juglans regia", img: commonsFile("Juglans regia.jpg") }
   ],
   "Jehličnaté stromy": [
     { en:"Norway spruce", cz:"Smrk ztepilý", genus:"Picea", species:"Picea abies", img: commonsFile("Picea abies.jpg") },
@@ -191,7 +334,7 @@ const datasets = {
     { en:"Silver fir", cz:"Jedle bělokorá", genus:"Abies", species:"Abies alba", img: commonsFile("Abies alba.jpg") },
     { en:"European larch", cz:"Modřín opadavý", genus:"Larix", species:"Larix decidua", img: commonsFile("Larix decidua.JPG") },
     { en:"Yew", cz:"Tis", genus:"Taxus", species:"Taxus baccata", img: commonsFile("Taxus baccata.jpg") },
-    { en:"Juniper", cz:"Jalovec", genus:"Juniperus", species:"Juniperus communis", img: commonsFile("Juniperus communis .jpg") },
+    { en:"Juniper", cz:"Jalovec", genus:"Juniperus", species:"Juniperus communis", img: commonsFile("Juniperus communis.jpg") },
     { en:"Thuja", cz:"Túje (zerav)", genus:"Thuja", species:"Thuja occidentalis", img: commonsFile("Thuja occidentalis.jpg") }
   ],
   "Listnaté stromy": [
@@ -199,30 +342,52 @@ const datasets = {
     { en:"Beech", cz:"Buk", genus:"Fagus", species:"Fagus sylvatica", img: commonsFile("Fagus sylvatica.jpg") },
     { en:"Birch", cz:"Bříza", genus:"Betula", species:"Betula pendula", img: commonsFile("Betula pendula.JPG") },
     { en:"Maple", cz:"Javor", genus:"Acer", species:"Acer platanoides", img: commonsFile("Acer platanoides.jpg") },
-    { en:"Linden", cz:"Lípa", genus:"Tilia", species:"Tilia cordata", img: commonsFile("Tilia-cordata.JPG") },
+    { en:"Linden", cz:"Lípa", genus:"Tilia", species:"Tilia cordata", img: commonsFile("Tilia cordata.jpg") },
     { en:"Ash", cz:"Jasan", genus:"Fraxinus", species:"Fraxinus excelsior", img: commonsFile("Fraxinus excelsior.jpg") },
     { en:"Elm", cz:"Jilm", genus:"Ulmus", species:"Ulmus glabra", img: commonsFile("Ulmus glabra.jpg") },
     { en:"Hornbeam", cz:"Habr", genus:"Carpinus", species:"Carpinus betulus", img: commonsFile("Carpinus betulus.jpg") },
     { en:"Poplar", cz:"Topol", genus:"Populus", species:"Populus tremula", img: commonsFile("Populus tremula.JPG") },
-    { en:"Willow", cz:"Vrba", genus:"Salix", species:"Salix alba", img: commonsFile("Salix Alba.jpg") }
+    { en:"Willow", cz:"Vrba", genus:"Salix", species:"Salix alba", img: commonsFile("Salix alba.jpg") }
   ]
 };
 
+// ====== DOM ======
+const categoryEl = document.getElementById("category");
+const quizTypeEl = document.getElementById("quizType");
+const modeClassicEl = document.getElementById("modeClassic");
+const resetBtnEl = document.getElementById("resetBtn");
+
+const setCountEl = document.getElementById("setCount");
+const setNameEl = document.getElementById("setName");
+const qTypeEl = document.getElementById("qType");
+const aTypeEl = document.getElementById("aType");
+
+const tabStudyEl = document.getElementById("tabStudy");
+const tabQuizEl = document.getElementById("tabQuiz");
+const studyViewEl = document.getElementById("studyView");
+const quizViewEl = document.getElementById("quizView");
+
+// Study DOM
+const prevCardBtn = document.getElementById("prevCardBtn");
+const nextCardBtn = document.getElementById("nextCardBtn");
+const flipBtn = document.getElementById("flipBtn");
+const studyTitleEl = document.getElementById("studyTitle");
+const studyIndexEl = document.getElementById("studyIndex");
+const studyTotalEl = document.getElementById("studyTotal");
+const studyImgEl = document.getElementById("studyImg");
+const studyGridEl = document.getElementById("studyGrid");
+const studyListEl = document.getElementById("studyList");
+const studyCardEl = document.getElementById("studyCard");
+
+// Quiz DOM
 const scoreEl = document.getElementById("score");
 const wrongEl = document.getElementById("wrong");
 const questionTextEl = document.getElementById("questionText");
 const optionsEl = document.getElementById("options");
 const resultEl = document.getElementById("result");
-const setCountEl = document.getElementById("setCount");
-const setNameEl = document.getElementById("setName");
-const categoryEl = document.getElementById("category");
-const quizTypeEl = document.getElementById("quizType");
-const modeClassicEl = document.getElementById("modeClassic");
-const resetBtnEl = document.getElementById("resetBtn");
-const qTypeEl = document.getElementById("qType");
-const aTypeEl = document.getElementById("aType");
 const hintTextEl = document.getElementById("hintText");
 
+// ====== Stav ======
 let correct = 0;
 let wrong = 0;
 let locked = false;
@@ -231,7 +396,10 @@ let currentItem = null;
 let currentQKey = null;
 let currentAKey = null;
 
-const DELAY_MS = 3500; 
+let studyIndex = 0;
+let hideAnswers = false;
+
+const DELAY_MS = 3500;
 const KEYS = ["en", "cz", "genus", "species"];
 
 const LABELS = {
@@ -242,15 +410,17 @@ const LABELS = {
   img: "Obrázek"
 };
 
+// ====== Helpers ======
 function shuffleInPlace(arr){
+  // Komentář: Spolehlivé míchání (Fisher–Yates).
   for (let i = arr.length - 1; i > 0; i--){
     const j = Math.floor(Math.random() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
 }
-
 function shuffledCopy(arr){
+  // Komentář: Vrátí novou promíchanou kopii pole.
   return shuffleInPlace([...arr]);
 }
 
@@ -286,18 +456,107 @@ function renderSetInfo(active){
   setNameEl.textContent = (categoryEl.value === "__ALL__") ? "VŠE DOHROMADY" : categoryEl.value;
 }
 
+function setModeClassicVisibility(){
+  // Komentář: Volba cíle odpovědi je relevantní jen pro "classic".
+  modeClassicEl.style.display = (quizTypeEl.value === "classic") ? "" : "none";
+}
+
+function setActiveTab(tab){
+  // Komentář: Přepínání mezi učením a kvízem.
+  const isStudy = tab === "study";
+  tabStudyEl.classList.toggle("active", isStudy);
+  tabQuizEl.classList.toggle("active", !isStudy);
+  studyViewEl.style.display = isStudy ? "" : "none";
+  quizViewEl.style.display = isStudy ? "none" : "";
+}
+
+// ====== STUDY MODE ======
+function buildStudyList(active){
+  // Komentář: Vykreslí seznam položek v sadě (kliknutím přejdeš na kartičku).
+  studyListEl.innerHTML = "";
+  active.forEach((item, idx) => {
+    const el = document.createElement("div");
+    el.className = "studyItem";
+    el.dataset.idx = String(idx);
+
+    const left = document.createElement("div");
+    left.innerHTML = `<strong>${item.en}</strong><small>${item.cz}</small>`;
+
+    const right = document.createElement("div");
+    right.innerHTML = `<small>${item.genus}</small>`;
+
+    el.appendChild(left);
+    el.appendChild(right);
+
+    el.onclick = () => {
+      studyIndex = idx;
+      renderStudyCard();
+    };
+
+    studyListEl.appendChild(el);
+  });
+}
+
+function renderStudyCard(){
+  const active = getActiveWords();
+  if (active.length === 0){
+    studyTitleEl.textContent = "Žádná data";
+    studyImgEl.removeAttribute("src");
+    studyGridEl.innerHTML = "";
+    studyIndexEl.textContent = "0";
+    studyTotalEl.textContent = "0";
+    return;
+  }
+
+  // Komentář: Hlídání indexu.
+  if (studyIndex < 0) studyIndex = 0;
+  if (studyIndex > active.length - 1) studyIndex = active.length - 1;
+
+  const item = active[studyIndex];
+
+  // zvýraznění v seznamu
+  [...studyListEl.children].forEach((node, idx) => {
+    node.classList.toggle("active", idx === studyIndex);
+  });
+
+  studyTitleEl.textContent = `${item.en}  →  ${item.cz}`;
+  studyIndexEl.textContent = String(studyIndex + 1);
+  studyTotalEl.textContent = String(active.length);
+  studyImgEl.src = item.img;
+
+  // Komentář: Obsah kartičky – to je ten „obsah slovíček“ k učení.
+  studyGridEl.innerHTML = `
+    <div class="studyLabel">EN</div><div class="studyValue">${item.en}</div>
+    <div class="studyLabel">CZ</div><div class="studyValue">${item.cz}</div>
+    <div class="studyLabel">Rod</div><div class="studyValue">${item.genus}</div>
+    <div class="studyLabel">Druh</div><div class="studyValue">${item.species}</div>
+  `;
+
+  // Skrytí/ukázání odpovědí (rozmazání hodnot)
+  studyCardEl.classList.toggle("hiddenAnswer", hideAnswers);
+
+  // info pilulky (necháme smysluplné i v učení)
+  qTypeEl.textContent = "–";
+  aTypeEl.textContent = "–";
+}
+
+function resetStudy(){
+  // Komentář: Reset učení při změně sady – vrátí tě na první kartičku.
+  studyIndex = 0;
+  hideAnswers = false;
+  const active = getActiveWords();
+  buildStudyList(active);
+  renderStudyCard();
+}
+
+// ====== QUIZ MODE ======
 function pickDifferentKey(fromKey){
   const candidates = KEYS.filter(k => k !== fromKey);
   return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
-function setModeClassicVisibility(){
-  modeClassicEl.style.display = (quizTypeEl.value === "classic") ? "" : "none";
-}
-
 function buildRound(active){
   const quizType = quizTypeEl.value;
-
   currentItem = active[Math.floor(Math.random() * active.length)];
 
   if (quizType === "classic"){
@@ -345,10 +604,8 @@ function buildOptionsText(active){
     const btn = document.createElement("button");
     btn.className = "optionBtn";
     btn.textContent = text;
-
     btn.style.background = "";
     btn.disabled = false;
-
     btn.onclick = () => checkAnswerText(text);
     optionsEl.appendChild(btn);
   });
@@ -401,7 +658,6 @@ function nextWord(){
   resultEl.textContent = "";
 
   const active = getActiveWords();
-  renderSetInfo(active);
 
   if (active.length < 4){
     questionTextEl.textContent = "Vybraná sada má méně než 4 položky.";
@@ -409,6 +665,7 @@ function nextWord(){
     qTypeEl.textContent = "–";
     aTypeEl.textContent = "–";
     hintTextEl.textContent = "";
+    renderSetInfo(active);
     return;
   }
 
@@ -420,6 +677,8 @@ function nextWord(){
   } else {
     buildOptionsText(active);
   }
+
+  renderSetInfo(active);
 }
 
 function checkAnswerText(answer){
@@ -430,11 +689,8 @@ function checkAnswerText(answer){
   const buttons = document.querySelectorAll(".optionBtn");
 
   buttons.forEach(btn => {
-    if (btn.textContent === correctAnswer) {
-      btn.style.background = "#2ecc71";
-    } else if (btn.textContent === answer) {
-      btn.style.background = "#e74c3c";
-    }
+    if (btn.textContent === correctAnswer) btn.style.background = "#2ecc71";
+    else if (btn.textContent === answer) btn.style.background = "#e74c3c";
     btn.disabled = true;
   });
 
@@ -463,11 +719,8 @@ function checkAnswerImage(chosenItem){
     const isCorrect = btn.dataset.key === correctItem.en;
     const isChosen  = btn.dataset.key === chosenItem.en;
 
-    if (isCorrect){
-      btn.style.background = "#2ecc71";
-    } else if (isChosen){
-      btn.style.background = "#e74c3c";
-    }
+    if (isCorrect) btn.style.background = "#2ecc71";
+    else if (isChosen) btn.style.background = "#e74c3c";
     btn.disabled = true;
   });
 
@@ -485,7 +738,8 @@ function checkAnswerImage(chosenItem){
   setTimeout(nextWord, DELAY_MS);
 }
 
-function resetAll(){
+function resetQuiz(){
+  // Komentář: Reset skóre a začni znovu v kvízu.
   correct = 0;
   wrong = 0;
   scoreEl.textContent = 0;
@@ -493,13 +747,31 @@ function resetAll(){
   nextWord();
 }
 
-resetBtnEl.onclick = resetAll;
-categoryEl.onchange = resetAll;
-quizTypeEl.onchange = () => { setModeClassicVisibility(); resetAll(); };
-modeClassicEl.onchange = () => { if (quizTypeEl.value === "classic") resetAll(); };
+function resetAll(){
+  // Komentář: Resetuje učení i kvíz (když změníš sadu/režim).
+  resetStudy();
+  resetQuiz();
+}
 
+// ====== Events ======
+tabStudyEl.onclick = () => { setActiveTab("study"); resetStudy(); };
+tabQuizEl.onclick  = () => { setActiveTab("quiz");  resetQuiz(); };
+
+prevCardBtn.onclick = () => { studyIndex--; renderStudyCard(); };
+nextCardBtn.onclick = () => { studyIndex++; renderStudyCard(); };
+flipBtn.onclick = () => { hideAnswers = !hideAnswers; renderStudyCard(); };
+
+resetBtnEl.onclick = resetAll;
+
+categoryEl.onchange = () => { renderSetInfo(getActiveWords()); resetAll(); };
+quizTypeEl.onchange = () => { setModeClassicVisibility(); resetQuiz(); };
+modeClassicEl.onchange = () => { if (quizTypeEl.value === "classic") resetQuiz(); };
+
+// ====== Start ======
 initCategories();
 setModeClassicVisibility();
+renderSetInfo(getActiveWords());
+setActiveTab("study");
 resetAll();
 </script>
 
